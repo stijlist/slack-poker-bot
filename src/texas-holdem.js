@@ -17,17 +17,19 @@ class TexasHoldem {
   // channel - The channel where the game will be played
   // players - The players participating in the game
   // scheduler - (Optional) The scheduler to use for timing events
-  constructor(slack, messages, channel, players, scheduler=rx.Scheduler.timeout) {
+  constructor(slack, messages, channel, players, scheduler=rx.Scheduler.timeout, cash=false) {
     this.slack = slack;
     this.messages = messages;
     this.channel = channel;
     this.players = players;
     this.scheduler = scheduler;
+    this.cash = cash;
 
     this.smallBlind = 1;
     this.bigBlind = this.smallBlind * 2;
     this.potManager = new PotManager(this.channel, players, this.smallBlind);
     this.gameEnded = new rx.Subject();
+    this.queuedRebuys = [];
 
     // Each player starts with 100 big blinds.
     for (let player of this.players) {
@@ -277,6 +279,9 @@ class TexasHoldem {
     case 'raise':
       this.onPlayerBet(player, roundEnded);
       break;
+    case 'rebuy':
+      if (this.cash) this.queueRebuyForPlayer(player);
+      break;
     }
   }
 
@@ -451,10 +456,11 @@ class TexasHoldem {
   onHandEnded(handEnded) {
     this.dealerButton = (this.dealerButton + 1) % this.players.length;
 
+    if (this.cash) this.flushRebuys(this.queuedRebuys);
     handEnded.onNext(true);
     handEnded.onCompleted();
     
-    this.checkForGameWinner();
+    if (!this.cash) this.checkForGameWinner();
   }
 
   // Private: If there is only one player with chips left, we've got a winner.
@@ -573,6 +579,15 @@ class TexasHoldem {
     let playersRemaining = _.filter(this.players, playerPredicate);
     return _.every(playersRemaining, p => p.lastAction !== null &&
       actions.indexOf(p.lastAction.name) > -1);
+  }
+
+  queueRebuyForPlayer(player) {
+    this.queuedRebuys.push(player);
+  }
+  flushRebuys(queuedRebuys) {
+    queuedRebuys.each(function (player) {
+      player.chips += 200;
+    });
   }
 }
 

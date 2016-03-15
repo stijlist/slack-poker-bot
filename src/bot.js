@@ -58,7 +58,7 @@ class Bot {
   // Returns a {Disposable} that will end this subscription
   handleDealGameMessages(messages, atMentions) {
     return atMentions
-      .where(e => e.text && e.text.toLowerCase().match(/\bdeal\b/))
+      .where(e => e.text && (e.text.toLowerCase().match(/\bdeal\b/) || e.text.toLowerCase().match(/\bcash\b/)))
       .map(e => this.slack.getChannelGroupOrDMByID(e.channel))
       .where(channel => {
         if (this.isPolling) {
@@ -128,7 +128,7 @@ class Bot {
   // players - The players participating in the game
   //
   // Returns an {Observable} that signals completion of the game 
-  startGame(messages, channel, players) {
+  startGame(messages, channel, players, cash) {
     if (players.length <= 1) {
       channel.send('Not enough players for a game, try again later.');
       return rx.Observable.return(null);
@@ -137,7 +137,7 @@ class Bot {
     channel.send(`We've got ${players.length} players, let's start the game.`);
     this.isGameRunning = true;
     
-    let game = new TexasHoldem(this.slack, messages, channel, players);
+    let game = new TexasHoldem(this.slack, messages, channel, players, cash);
     _.extend(game, this.gameConfig);
 
     // Listen for messages directed at the bot containing 'quit game.'
