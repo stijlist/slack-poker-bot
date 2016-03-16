@@ -138,7 +138,7 @@ class PlayerInteraction {
     let betActions = _.filter(actions, a => a.name === 'bet' || a.name === 'raise');
     let hasBet = betActions.length > 0;
 
-    let availableActions = [];
+    let availableActions = ['rebuy'];
 
     if (player.hasOption) {
       availableActions.push('check');
@@ -206,6 +206,8 @@ class PlayerInteraction {
       name = 'raise';
       amount = input[1] ? parseInt(input[1]) : NaN;
       break;
+    case 'rebuy':
+      name = 'rebuy';
     default:
       return null;
     }

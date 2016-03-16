@@ -17,7 +17,7 @@ class TexasHoldem {
   // channel - The channel where the game will be played
   // players - The players participating in the game
   // scheduler - (Optional) The scheduler to use for timing events
-  constructor(slack, messages, channel, players, scheduler=rx.Scheduler.timeout, cash=false) {
+  constructor(slack, messages, channel, players, scheduler=rx.Scheduler.timeout) {
     this.slack = slack;
     this.messages = messages;
     this.channel = channel;
@@ -280,7 +280,7 @@ class TexasHoldem {
       this.onPlayerBet(player, roundEnded);
       break;
     case 'rebuy':
-      if (this.cash) this.queueRebuyForPlayer(player);
+      this.queueRebuyForPlayer(player);
       break;
     }
   }

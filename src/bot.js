@@ -58,7 +58,7 @@ class Bot {
   // Returns a {Disposable} that will end this subscription
   handleDealGameMessages(messages, atMentions) {
     return atMentions
-      .where(e => e.text && (e.text.toLowerCase().match(/\bdeal\b/) || e.text.toLowerCase().match(/\bcash\b/)))
+      .where(e => e.text && e.text.toLowerCase().match(/\bdeal\b/))
       .map(e => this.slack.getChannelGroupOrDMByID(e.channel))
       .where(channel => {
         if (this.isPolling) {
